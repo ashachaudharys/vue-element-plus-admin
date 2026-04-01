@@ -69,7 +69,7 @@ declare global {
     meta: RouteMeta
     component: string
     path: string
-    redirect: string
+    redirect?: string
     children?: AppCustomRouteRecordRaw[]
   }
 }

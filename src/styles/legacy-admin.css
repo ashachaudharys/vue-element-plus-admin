@@ -1,0 +1,49 @@
+:root {
+  font-family: Inter, 'SF Pro Text', 'PingFang SC', sans-serif;
+  color: #15211b;
+  background: radial-gradient(circle at top left, rgba(212, 226, 176, 0.16), transparent 22%),
+    linear-gradient(180deg, #243b2a 0%, #1c2f22 42%, #16241b 100%);
+  --admin-bg: #1d3022;
+  --admin-bg-deep: #16241b;
+  --admin-shell: #f6f3ea;
+  --admin-shell-line: rgba(44, 61, 42, 0.1);
+  --admin-card: rgba(255, 252, 246, 0.94);
+  --admin-soft: #ece6d6;
+  --admin-text: #1b2b1f;
+  --admin-text-soft: #687566;
+  --admin-gold: #d5a12d;
+  --admin-gold-soft: #fff0c7;
+  --admin-green: #1e6a47;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 1200px;
+  background: radial-gradient(circle at top left, rgba(248, 228, 163, 0.1), transparent 18%),
+    linear-gradient(180deg, var(--admin-bg) 0%, var(--admin-bg-deep) 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-shell {
+  border: 1px solid rgba(233, 238, 220, 0.08);
+  background: linear-gradient(180deg, rgba(248, 245, 236, 0.98) 0%, rgba(241, 238, 227, 0.98) 100%);
+  box-shadow:
+    0 42px 120px rgba(6, 14, 9, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.admin-panel {
+  border: 1px solid var(--admin-shell-line);
+  background: var(--admin-card);
+  box-shadow: 0 20px 42px rgba(16, 24, 18, 0.08);
+}

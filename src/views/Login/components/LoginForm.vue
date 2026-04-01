@@ -12,7 +12,7 @@ import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from 'vue-router'
 import { UserType } from '@/api/login/types'
 import { useValidator } from '@/hooks/web/useValidator'
 import { Icon } from '@/components/Icon'
-import { useUserStore } from '@/store/modules/user'
+import { useUserStore, type AdminUser } from '@/store/modules/user'
 import { BaseButton } from '@/components/Button'
 
 const { required } = useValidator()
@@ -242,7 +242,7 @@ const signIn = async () => {
             userStore.setLoginInfo(undefined)
           }
           userStore.setRememberMe(unref(remember))
-          userStore.setUserInfo(res.data)
+          userStore.setUserInfo(res.data as unknown as AdminUser)
           // 是否使用动态路由
           if (appStore.getDynamicRouter) {
             getRole()
@@ -274,10 +274,14 @@ const getRole = async () => {
       : await getTestRoleApi(params)
   if (res) {
     const routers = res.data || []
-    userStore.setRoleRouters(routers)
+    userStore.setRoleRouters(routers as AppCustomRouteRecordRaw[])
     appStore.getDynamicRouter && appStore.getServerDynamicRouter
-      ? await permissionStore.generateRoutes('server', routers).catch(() => {})
-      : await permissionStore.generateRoutes('frontEnd', routers).catch(() => {})
+      ? await permissionStore
+          .generateRoutes('server', routers as AppCustomRouteRecordRaw[])
+          .catch(() => {})
+      : await permissionStore
+          .generateRoutes('frontEnd', routers as unknown as string[])
+          .catch(() => {})
 
     permissionStore.getAddRouters.forEach((route) => {
       addRoute(route as RouteRecordRaw) // 动态添加可访问路由表

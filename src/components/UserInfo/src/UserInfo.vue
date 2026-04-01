@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
-import { useI18n } from '@/hooks/web/useI18n'
 import { useDesign } from '@/hooks/web/useDesign'
 import LockDialog from './components/LockDialog.vue'
 import { ref, computed } from 'vue'
@@ -18,8 +17,6 @@ const { getPrefixCls } = useDesign()
 
 const prefixCls = getPrefixCls('user-info')
 
-const { t } = useI18n()
-
 const loginOut = () => {
   userStore.logoutConfirm()
 }
@@ -29,10 +26,6 @@ const dialogVisible = ref<boolean>(false)
 // 锁定屏幕
 const lockScreen = () => {
   dialogVisible.value = true
-}
-
-const toDocument = () => {
-  window.open('https://element-plus-admin-doc.cn/')
 }
 </script>
 
@@ -50,14 +43,11 @@ const toDocument = () => {
     </div>
     <template #dropdown>
       <ElDropdownMenu>
-        <ElDropdownItem>
-          <div @click="toDocument">{{ t('common.document') }}</div>
-        </ElDropdownItem>
         <ElDropdownItem divided>
-          <div @click="lockScreen">{{ t('lock.lockScreen') }}</div>
+          <div @click="lockScreen">锁定屏幕</div>
         </ElDropdownItem>
         <ElDropdownItem>
-          <div @click="loginOut">{{ t('common.loginOut') }}</div>
+          <div @click="loginOut">退出登录</div>
         </ElDropdownItem>
       </ElDropdownMenu>
     </template>

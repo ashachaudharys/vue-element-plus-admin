@@ -1,24 +1,12 @@
 import type { App } from 'vue'
+import ElementPlus, { ElLoading } from 'element-plus'
 
-// 需要全局引入一些组件，如ElScrollbar，不然一些下拉项样式有问题
-import { ElLoading, ElScrollbar } from 'element-plus'
+export const setupElementPlus = async (app: App<Element>) => {
+  // 这套后台里大量页面直接使用了 <el-*> 组件，必须全局注册 Element Plus，
+  // 否则运行时会退化成原生自定义标签，登录页和业务页都会出现“只剩壳子”的异常。
+  app.use(ElementPlus)
+  app.use(ElLoading)
 
-const plugins = [ElLoading]
-
-const components = [ElScrollbar]
-
-export const setupElementPlus = (app: App<Element>) => {
-  plugins.forEach((plugin) => {
-    app.use(plugin)
-  })
-
-  // 为了开发环境启动更快，一次性引入所有样式
-  if (import.meta.env.VITE_USE_ALL_ELEMENT_PLUS_STYLE === 'true') {
-    import('element-plus/dist/index.css')
-    return
-  }
-
-  components.forEach((component) => {
-    app.component(component.name!, component)
-  })
+  // 统一加载完整版样式，保证直接使用的组件都有对应的样式输出。
+  await import('element-plus/dist/index.css')
 }
