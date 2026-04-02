@@ -76,13 +76,15 @@ const session = useAdminSessionStore()
 
 const menuItems = [
   { path: '/dashboard', label: '概览面板', permission: 'dashboard.view' },
-  { path: '/admins', label: '管理员账号', permission: 'admins.view' },
+  { path: '/reports', label: '统计报表', permission: 'dashboard.view' },
+  { path: '/admins', label: '后台账号', permission: 'admins.view' },
   { path: '/roles', label: '角色权限', permission: 'admins.view' },
-  { path: '/users', label: '用户中心', permission: 'users.view' },
+  { path: '/users', label: '玩家管理', permission: 'users.view' },
   { path: '/games', label: '游戏管理', permission: 'games.view' },
   { path: '/operations', label: '运营编排', permission: 'operations.view' },
-  { path: '/wallet-logs', label: '钱包日志', permission: 'wallet_logs.view' },
-  { path: '/providers', label: '供应商管理', permission: 'providers.view' },
+  { path: '/wallet-logs', label: '账变明细', permission: 'wallet_logs.view' },
+  { path: '/providers', label: 'API切换', permission: 'providers.view' },
+  { path: '/win-loss', label: '胜负统计', permission: 'observability.view' },
   { path: '/login-logs', label: '登录日志', permission: 'audit_logs.view' },
   { path: '/audit-logs', label: '审计日志', permission: 'audit_logs.view' },
   { path: '/observability', label: '可观测性', permission: 'observability.view' }

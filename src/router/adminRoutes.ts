@@ -44,10 +44,18 @@ const standaloneAdminRoutes: AppCustomRouteRecordRaw[] = [
     affix: true
   }),
   createLeafRoute({
+    path: '/reports',
+    routeName: 'Reports',
+    viewName: 'ReportsView',
+    title: '统计报表',
+    icon: 'ep:histogram',
+    permission: 'dashboard.view'
+  }),
+  createLeafRoute({
     path: '/admins',
     routeName: 'Admins',
     viewName: 'AdminsView',
-    title: '管理员账号',
+    title: '后台账号',
     icon: 'ep:user-filled',
     permission: 'admins.view'
   }),
@@ -63,7 +71,7 @@ const standaloneAdminRoutes: AppCustomRouteRecordRaw[] = [
     path: '/users',
     routeName: 'Users',
     viewName: 'UsersView',
-    title: '用户中心',
+    title: '玩家管理',
     icon: 'ep:user',
     permission: 'users.view'
   }),
@@ -79,7 +87,7 @@ const standaloneAdminRoutes: AppCustomRouteRecordRaw[] = [
     path: '/wallet-logs',
     routeName: 'WalletLogs',
     viewName: 'WalletLogsView',
-    title: '钱包日志',
+    title: '账变明细',
     icon: 'ep:wallet',
     permission: 'wallet_logs.view'
   }),
@@ -106,6 +114,14 @@ const standaloneAdminRoutes: AppCustomRouteRecordRaw[] = [
     title: '审计日志',
     icon: 'ep:document-checked',
     permission: 'audit_logs.view'
+  }),
+  createLeafRoute({
+    path: '/win-loss',
+    routeName: 'WinLoss',
+    viewName: 'WinLossView',
+    title: '胜负统计',
+    icon: 'ep:trend-charts',
+    permission: 'observability.view'
   }),
   createLeafRoute({
     path: '/observability',

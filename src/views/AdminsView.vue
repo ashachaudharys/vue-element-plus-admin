@@ -10,10 +10,15 @@
     <el-card shadow="never" class="page-card">
       <template #header>
         <div class="card-header">
-          <span>管理员账号</span>
+          <div>
+            <div class="card-title">后台账号</div>
+            <div class="card-subtitle">
+              展示后台用户名、所属角色、MFA 状态和最后登录时间，支持一键禁用或启用。
+            </div>
+          </div>
           <div class="header-actions">
             <el-button v-if="canManageAdmins" type="primary" @click="openCreateDialog"
-              >新建管理员</el-button
+              >新增管理账号</el-button
             >
             <el-button type="primary" plain @click="applyFilters">查询</el-button>
             <el-button plain @click="resetFilters">重置</el-button>
@@ -45,9 +50,9 @@
 
       <el-table :data="rows" stripe v-loading="loading">
         <el-table-column prop="id" label="ID" min-width="80" />
-        <el-table-column prop="username" label="用户名" min-width="160" />
-        <el-table-column prop="role_name" label="角色" min-width="160" />
-        <el-table-column prop="uid" label="UID" min-width="220" />
+        <el-table-column prop="username" label="后台用户名" min-width="160" />
+        <el-table-column prop="role_name" label="所属角色" min-width="160" />
+        <el-table-column prop="uid" label="操作员 ID" min-width="220" />
         <el-table-column label="状态" min-width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'">
@@ -55,28 +60,24 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="安全状态" min-width="180">
+        <el-table-column label="MFA 状态" min-width="180">
           <template #default="{ row }">
-            <el-tag v-if="row.locked_until" type="danger">锁定中</el-tag>
-            <span v-else class="text-muted">正常</span>
-            <div class="security-copy">
-              失败 {{ row.failed_login_attempts }} 次
-              <template v-if="row.locked_until"> · 至 {{ formatTime(row.locked_until) }} </template>
+            <el-tag :type="row.two_factor_enabled ? 'success' : 'warning'">
+              {{ row.two_factor_enabled ? '已绑定' : '未绑定' }}
+            </el-tag>
+            <div class="security-copy" v-if="row.two_factor_enabled_at">
+              启用时间 {{ formatTime(row.two_factor_enabled_at) }}
             </div>
-            <div class="security-copy">
-              2FA {{ row.two_factor_enabled ? '已开启' : '未开启' }}
-              <template v-if="row.two_factor_enabled_at">
-                · {{ formatTime(row.two_factor_enabled_at) }}
-              </template>
+            <div class="security-copy" v-if="row.locked_until">
+              当前锁定至 {{ formatTime(row.locked_until) }}
             </div>
-            <div class="security-copy">
-              IP 白名单 {{ row.allowed_ip_list ? '已配置' : '未限制' }}
-            </div>
+            <div class="security-copy">登录失败 {{ row.failed_login_attempts }} 次</div>
           </template>
         </el-table-column>
         <el-table-column label="最后登录" min-width="180">
           <template #default="{ row }">
             {{ formatTime(row.last_login_at) }}
+            <div class="security-copy">{{ row.last_login_ip || 'IP 未记录' }}</div>
           </template>
         </el-table-column>
         <el-table-column label="创建时间" min-width="180">
@@ -89,6 +90,13 @@
             <template v-if="canManageAdmins">
               <el-button type="primary" link @click="openEditDialog(row)">编辑</el-button>
               <el-button type="warning" link @click="openPasswordDialog(row)">重置密码</el-button>
+              <el-button
+                :type="row.status === 1 ? 'danger' : 'success'"
+                link
+                @click="quickToggleStatus(row)"
+              >
+                {{ row.status === 1 ? '禁用' : '启用' }}
+              </el-button>
               <el-button
                 v-if="row.two_factor_enabled"
                 type="danger"
@@ -119,8 +127,8 @@
 
   <el-dialog v-model="createVisible" title="新建管理员" width="480px">
     <el-form label-position="top">
-      <el-form-item label="用户名">
-        <el-input v-model.trim="createForm.username" placeholder="请输入用户名" />
+      <el-form-item label="操作员 ID">
+        <el-input v-model.trim="createForm.username" placeholder="请输入后台登录账号" />
       </el-form-item>
       <el-form-item label="初始密码">
         <el-input
@@ -130,7 +138,7 @@
           placeholder="至少 6 位"
         />
       </el-form-item>
-      <el-form-item label="角色">
+      <el-form-item label="功能权限组">
         <el-select v-model="createForm.role_id" placeholder="请选择角色">
           <el-option
             v-for="item in roleOptions"
@@ -166,13 +174,13 @@
 
   <el-dialog v-model="editVisible" title="编辑管理员" width="420px">
     <el-form label-position="top">
-      <el-form-item label="用户名">
+      <el-form-item label="后台用户名">
         <el-input :model-value="editingAdmin?.username || ''" disabled />
       </el-form-item>
-      <el-form-item label="UID">
+      <el-form-item label="操作员 ID">
         <el-input :model-value="editingAdmin?.uid || ''" disabled />
       </el-form-item>
-      <el-form-item label="角色">
+      <el-form-item label="功能权限组">
         <el-select v-model="editForm.role_id">
           <el-option
             v-for="item in roleOptions"
@@ -260,6 +268,7 @@ interface AdminRow {
   two_factor_enabled: boolean
   two_factor_enabled_at: string | null
   allowed_ip_list: string
+  last_login_ip: string
   last_login_at: string | null
   created_at: string
 }
@@ -444,6 +453,10 @@ async function submitEdit() {
   }
 }
 
+async function quickToggleStatus(row: AdminRow) {
+  await updateAdminStatus(row, row.status === 1 ? 0 : 1)
+}
+
 async function submitPasswordReset() {
   if (!passwordTarget.value) {
     return
@@ -488,6 +501,23 @@ async function resetTwoFactor(row: AdminRow) {
   }
 }
 
+async function updateAdminStatus(row: AdminRow, status: number) {
+  loading.value = true
+  try {
+    await http.put(`/admin/admin-users/${row.id}`, {
+      role_id: row.role_id,
+      status,
+      allowed_ip_list: row.allowed_ip_list || ''
+    })
+    ElMessage.success(status === 1 ? '后台账号已启用' : '后台账号已禁用')
+    await loadAdmins()
+  } catch (error: any) {
+    ElMessage.error(error?.response?.data?.error || error?.message || '更新失败')
+  } finally {
+    loading.value = false
+  }
+}
+
 function formatTime(value?: string | null) {
   if (!value) {
     return '-'
@@ -521,6 +551,18 @@ function formatTime(value?: string | null) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-subtitle {
+  margin-top: 6px;
+  color: #64748b;
 }
 
 .header-actions {

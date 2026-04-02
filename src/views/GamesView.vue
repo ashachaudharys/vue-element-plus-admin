@@ -35,7 +35,9 @@
         <div class="card-header">
           <div>
             <div class="card-title">游戏管理</div>
-            <div class="card-subtitle">统一维护游戏上架状态、维护开关、排序与标签归类。</div>
+            <div class="card-subtitle">
+              采用列表检索与右侧配置抽屉，适配 200+ 款游戏的批量运营维护。
+            </div>
           </div>
           <div class="header-actions">
             <el-button type="primary" plain @click="applyGameFilters">查询</el-button>
@@ -70,9 +72,9 @@
       <div class="filter-bar">
         <el-input
           v-model.trim="gameFilters.keyword"
-          placeholder="搜索游戏名 / 游戏代码 / 厂商 / 捕鱼线路"
+          placeholder="搜索游戏名称 / 游戏代码 / API 供应商"
           clearable
-          @keyup.enter="applyGameFilters"
+          @input="applyGameFilters"
         />
         <el-select v-model="gameFilters.vendor_code" clearable placeholder="供应商">
           <el-option
@@ -84,9 +86,9 @@
         </el-select>
         <el-input
           v-model.trim="gameFilters.provider_code"
-          placeholder="线路代码 / Provider"
+          placeholder="API 供应商 / Provider"
           clearable
-          @keyup.enter="applyGameFilters"
+          @input="applyGameFilters"
         />
         <el-select v-model="gameFilters.status" clearable placeholder="上架状态">
           <el-option label="已上架" :value="1" />
@@ -117,15 +119,15 @@
             type="success"
             plain
             :loading="batchUpdating"
-            @click="submitBatchUpdate({ status: 1 }, '已批量上架')"
-            >批量上架</el-button
+            @click="submitBatchUpdate({ status: 1 }, '已一键显示选中游戏')"
+            >一键显示</el-button
           >
           <el-button
             type="warning"
             plain
             :loading="batchUpdating"
-            @click="submitBatchUpdate({ status: 0 }, '已批量下架')"
-            >批量下架</el-button
+            @click="submitBatchUpdate({ status: 0 }, '已一键隐藏选中游戏')"
+            >一键隐藏</el-button
           >
           <el-button
             type="warning"
@@ -219,14 +221,14 @@
         </el-table-column>
         <el-table-column label="操作" min-width="220" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="openGameDialog(row)">编辑</el-button>
+            <el-button type="primary" link @click="openGameDialog(row)">配置</el-button>
             <el-button
               :type="row.status === 1 ? 'warning' : 'success'"
               link
               :loading="actionLoadingId === row.id && actionLoadingType === 'status'"
               @click="toggleGameStatus(row)"
             >
-              {{ row.status === 1 ? '下架' : '上架' }}
+              {{ row.status === 1 ? '隐藏' : '显示' }}
             </el-button>
             <el-button
               :type="row.under_maintenance ? 'success' : 'warning'"
@@ -336,7 +338,7 @@
     </el-card>
   </div>
 
-  <el-dialog v-model="gameDialogVisible" title="编辑游戏" width="640px">
+  <el-drawer v-model="gameDialogVisible" title="游戏配置抽屉" size="520px" direction="rtl">
     <el-form label-position="top">
       <div class="dialog-grid">
         <el-form-item label="游戏名称">
@@ -390,10 +392,10 @@
     <template #footer>
       <div class="dialog-actions">
         <el-button @click="gameDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="savingGame" @click="submitGameEdit">保存</el-button>
+        <el-button type="primary" :loading="savingGame" @click="submitGameEdit">保存配置</el-button>
       </div>
     </template>
-  </el-dialog>
+  </el-drawer>
 
   <el-dialog v-model="tagDialogVisible" :title="editingTag ? '编辑标签' : '新建标签'" width="520px">
     <el-form label-position="top">
@@ -831,7 +833,7 @@ async function toggleGameStatus(row: GameRow) {
     await http.put(`/admin/games/${row.id}`, {
       status: row.status === 1 ? 0 : 1
     })
-    ElMessage.success(row.status === 1 ? '游戏已下架' : '游戏已上架')
+    ElMessage.success(row.status === 1 ? '游戏已隐藏' : '游戏已显示')
     await loadGames()
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.error || error?.message || '操作失败')

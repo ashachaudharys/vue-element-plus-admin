@@ -2,7 +2,10 @@
   <el-card shadow="never" class="page-card">
     <template #header>
       <div class="card-header">
-        <span>供应商管理</span>
+        <div>
+          <div class="card-title">API切换</div>
+          <div class="card-subtitle">基于现有供应商配置实现线路启停与手工配置切换。</div>
+        </div>
         <div class="header-actions">
           <el-button type="primary" plain @click="applyFilters">查询</el-button>
           <el-button plain @click="resetFilters">重置</el-button>
@@ -66,6 +69,12 @@
         </template>
       </el-table-column>
       <el-table-column prop="client_id" label="Client ID" min-width="160" show-overflow-tooltip />
+      <el-table-column
+        prop="mer_account"
+        label="商户号 / Tenant"
+        min-width="160"
+        show-overflow-tooltip
+      />
       <el-table-column prop="api_base_url" label="启动地址" min-width="240" show-overflow-tooltip />
       <el-table-column label="更新时间" min-width="180">
         <template #default="{ row }">
@@ -100,7 +109,7 @@
     </div>
   </el-card>
 
-  <el-dialog v-model="dialogVisible" title="编辑供应商配置" width="720px">
+  <el-dialog v-model="dialogVisible" title="编辑 API 配置" width="720px">
     <el-form label-position="top">
       <div class="dialog-grid">
         <el-form-item label="供应商名称">
@@ -114,6 +123,12 @@
         </el-form-item>
         <el-form-item label="Client ID">
           <el-input v-model.trim="editForm.client_id" placeholder="请输入 Client ID" />
+        </el-form-item>
+        <el-form-item label="商户号 / Tenant">
+          <el-input
+            v-model.trim="editForm.mer_account"
+            placeholder="XE 使用 Tenant，其他线路可留空"
+          />
         </el-form-item>
       </div>
 
@@ -171,6 +186,7 @@ interface ProviderRow {
   vendor_code: string
   api_base_url: string
   client_id: string
+  mer_account: string
   has_client_secret: boolean
   type: number
   status: number
@@ -209,6 +225,7 @@ const editForm = reactive({
   name: '',
   api_base_url: '',
   client_id: '',
+  mer_account: '',
   client_secret: '',
   operational_status: 1,
   manual_config_enabled: false
@@ -298,6 +315,7 @@ function openEditDialog(row: ProviderRow) {
   editForm.name = row.name
   editForm.api_base_url = row.api_base_url
   editForm.client_id = row.client_id
+  editForm.mer_account = row.mer_account || ''
   editForm.client_secret = ''
   editForm.operational_status = row.operational_status
   editForm.manual_config_enabled = row.manual_config_enabled
@@ -315,6 +333,7 @@ async function submitEdit() {
       name: editForm.name,
       api_base_url: editForm.api_base_url,
       client_id: editForm.client_id,
+      mer_account: editForm.mer_account,
       client_secret: editForm.client_secret,
       operational_status: editForm.operational_status,
       manual_config_enabled: editForm.manual_config_enabled
@@ -353,6 +372,18 @@ function formatTime(value?: string | null) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-subtitle {
+  margin-top: 6px;
+  color: #64748b;
 }
 
 .header-actions {

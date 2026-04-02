@@ -2,9 +2,14 @@
   <el-card shadow="never" class="page-card">
     <template #header>
       <div class="card-header">
-        <span>钱包日志</span>
+        <div>
+          <div class="card-title">账变明细</div>
+          <div class="card-subtitle">
+            默认展示最近 20 条账变，包含流水号、关联游戏或操作、账变前后金额对比。
+          </div>
+        </div>
         <div class="header-actions">
-          <el-button type="primary" plain @click="applyFilters">查询</el-button>
+          <el-button type="primary" plain @click="applyFilters">立即搜索</el-button>
           <el-button plain @click="resetFilters">重置</el-button>
         </div>
       </div>
@@ -13,23 +18,23 @@
     <div class="filter-bar">
       <el-input
         v-model.trim="filters.keyword"
-        placeholder="搜索订单号 / 供应商 / 游戏 / 用户ID"
+        placeholder="搜索流水号 / 关联游戏 / 操作 / 用户ID"
         clearable
         @keyup.enter="applyFilters"
       />
       <el-input
         v-model.trim="filters.user_id"
-        placeholder="用户ID"
+        placeholder="用户 ID"
         clearable
         @keyup.enter="applyFilters"
       />
       <el-input
         v-model.trim="filters.vendor_code"
-        placeholder="供应商编码"
+        placeholder="API 供应商"
         clearable
         @keyup.enter="applyFilters"
       />
-      <el-select v-model="filters.type" clearable placeholder="流水类型">
+      <el-select v-model="filters.type" clearable placeholder="账变类型">
         <el-option :value="1" label="充值" />
         <el-option :value="2" label="提现" />
         <el-option :value="3" label="下注" />
@@ -39,31 +44,50 @@
     </div>
 
     <el-table :data="logs" stripe v-loading="loading">
-      <el-table-column prop="id" label="ID" min-width="80" />
-      <el-table-column prop="user_id" label="用户ID" min-width="90" />
-      <el-table-column label="用户" min-width="180">
+      <el-table-column label="流水号" min-width="190" show-overflow-tooltip>
         <template #default="{ row }">
-          <div class="user-cell">
-            <span class="user-name">{{ row.username || '-' }}</span>
-            <span class="user-uid">{{ row.uid || '-' }}</span>
+          <div class="serial-cell">
+            <span class="serial-main">{{ row.order_no }}</span>
+            <span class="serial-sub">#{{ row.id }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="order_no" label="订单号" min-width="180" show-overflow-tooltip />
-      <el-table-column label="类型" min-width="100">
+      <el-table-column label="关联用户" min-width="170">
         <template #default="{ row }">
-          <el-tag :type="walletTypeMap[row.type]?.type || 'info'">
-            {{ walletTypeMap[row.type]?.label || `类型 ${row.type}` }}
-          </el-tag>
+          <div class="user-cell">
+            <span class="user-name">{{ row.username || '-' }}</span>
+            <span class="user-uid">UID {{ row.uid || '-' }} / ID {{ row.user_id }}</span>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="amount" label="金额" min-width="120" />
-      <el-table-column prop="balance_before" label="变更前余额" min-width="140" />
-      <el-table-column prop="balance_after" label="变更后余额" min-width="140" />
-      <el-table-column prop="vendor_code" label="供应商" min-width="120" />
-      <el-table-column prop="game_code" label="游戏" min-width="150" />
-      <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
-      <el-table-column label="时间" min-width="180">
+      <el-table-column label="关联游戏 / 操作" min-width="240" show-overflow-tooltip>
+        <template #default="{ row }">
+          <div class="related-cell">
+            <span class="related-main">{{ row.related_action || '-' }}</span>
+            <span class="related-sub">
+              {{ walletTypeMap[row.type]?.label || `类型 ${row.type}` }}
+            </span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="账变前后对比" min-width="240">
+        <template #default="{ row }">
+          <div class="balance-compare">
+            <div>账变前：{{ formatCurrency(row.balance_before) }}</div>
+            <div
+              :class="
+                row.type === 4 || row.type === 1 || row.type === 5
+                  ? 'delta-positive'
+                  : 'delta-negative'
+              "
+            >
+              账变额：{{ formatSigned(row.amount, row.type) }}
+            </div>
+            <div>账变后：{{ formatCurrency(row.balance_after) }}</div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="变动时间" min-width="180">
         <template #default="{ row }">
           {{ formatTime(row.created_at) }}
         </template>
@@ -103,6 +127,7 @@ interface WalletLogRow {
   remark: string
   vendor_code: string
   game_code: string
+  related_action: string
   created_at: string
 }
 
@@ -128,15 +153,12 @@ const pagination = reactive<Pagination>({
   total_pages: 0
 })
 
-const walletTypeMap: Record<
-  number,
-  { label: string; type: 'success' | 'danger' | 'warning' | 'info' }
-> = {
-  1: { label: '充值', type: 'success' },
-  2: { label: '提现', type: 'danger' },
-  3: { label: '下注', type: 'warning' },
-  4: { label: '派奖', type: 'success' },
-  5: { label: '退款', type: 'info' }
+const walletTypeMap: Record<number, { label: string }> = {
+  1: { label: '系统充值' },
+  2: { label: '人工提现' },
+  3: { label: '游戏投注' },
+  4: { label: '游戏派奖' },
+  5: { label: '退款回滚' }
 }
 
 onMounted(() => {
@@ -150,25 +172,14 @@ async function loadLogs() {
       page: pagination.page,
       page_size: pagination.page_size
     }
-
-    if (filters.keyword) {
-      params.keyword = filters.keyword
-    }
-    if (filters.user_id) {
-      params.user_id = filters.user_id
-    }
-    if (filters.vendor_code) {
-      params.vendor_code = filters.vendor_code
-    }
-    if (filters.type !== undefined) {
-      params.type = filters.type
-    }
+    if (filters.keyword) params.keyword = filters.keyword
+    if (filters.user_id) params.user_id = filters.user_id
+    if (filters.vendor_code) params.vendor_code = filters.vendor_code
+    if (filters.type !== undefined) params.type = filters.type
 
     const { data } = await http.get<{ data: WalletLogRow[]; pagination: Pagination }>(
       '/admin/wallet/logs',
-      {
-        params
-      }
+      { params }
     )
     logs.value = data.data
     Object.assign(pagination, data.pagination)
@@ -197,13 +208,24 @@ function handlePageChange(page: number) {
   void loadLogs()
 }
 
+function formatCurrency(value: number) {
+  return `¥ ${new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0)}`
+}
+
+function formatSigned(value: number, type: number) {
+  const positiveTypes = new Set([1, 4, 5])
+  const prefix = positiveTypes.has(type) ? '+' : '-'
+  return `${prefix}${formatCurrency(value)}`
+}
+
 function formatTime(value: string) {
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    second: '2-digit'
   }).format(new Date(value))
 }
 </script>
@@ -213,14 +235,29 @@ function formatTime(value: string) {
   border-radius: 28px;
 }
 
-.card-header {
+.card-header,
+.header-actions {
   display: flex;
   align-items: center;
+}
+
+.card-header {
   justify-content: space-between;
+  gap: 16px;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-subtitle {
+  margin-top: 6px;
+  color: #64748b;
 }
 
 .header-actions {
-  display: flex;
   gap: 10px;
 }
 
@@ -231,20 +268,37 @@ function formatTime(value: string) {
   margin-bottom: 18px;
 }
 
-.user-cell {
+.serial-cell,
+.user-cell,
+.related-cell,
+.balance-compare {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-.user-name {
-  font-weight: 600;
+.serial-main,
+.user-name,
+.related-main {
+  font-weight: 700;
   color: #0f172a;
 }
 
-.user-uid {
+.serial-sub,
+.user-uid,
+.related-sub {
   font-size: 12px;
   color: #64748b;
+}
+
+.delta-positive {
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.delta-negative {
+  font-weight: 700;
+  color: #ef4444;
 }
 
 .table-footer {
@@ -271,6 +325,7 @@ function formatTime(value: string) {
     grid-template-columns: 1fr;
   }
 
+  .card-header,
   .table-footer {
     flex-direction: column;
     align-items: flex-start;

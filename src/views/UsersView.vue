@@ -2,9 +2,12 @@
   <el-card shadow="never" class="page-card">
     <template #header>
       <div class="card-header">
-        <span>用户中心</span>
+        <div>
+          <div class="card-title">玩家管理</div>
+          <div class="card-subtitle">支持按用户名或用户 ID 检索，默认加载最近 10 条玩家记录。</div>
+        </div>
         <div class="header-actions">
-          <el-button type="primary" plain @click="applyFilters">查询</el-button>
+          <el-button type="primary" plain @click="applyFilters">搜索玩家</el-button>
           <el-button plain @click="resetFilters">重置</el-button>
         </div>
       </div>
@@ -13,12 +16,12 @@
     <div class="filter-bar">
       <el-input
         v-model.trim="filters.keyword"
-        placeholder="搜索用户名或 UID"
+        placeholder="输入用户名或用户 ID 进行模糊检索"
         clearable
         @keyup.enter="applyFilters"
       />
-      <el-select v-model="filters.status" clearable placeholder="状态">
-        <el-option label="启用" :value="1" />
+      <el-select v-model="filters.status" clearable placeholder="用户状态">
+        <el-option label="正常" :value="1" />
         <el-option label="停用" :value="0" />
       </el-select>
       <el-select
@@ -33,39 +36,50 @@
     </div>
 
     <el-table :data="rows" stripe v-loading="loading">
-      <el-table-column prop="id" label="ID" min-width="80" />
       <el-table-column prop="username" label="用户名" min-width="160" />
-      <el-table-column prop="uid" label="UID" min-width="220" />
-      <el-table-column prop="balance" label="余额" min-width="120" />
-      <el-table-column label="状态" min-width="100">
+      <el-table-column prop="id" label="用户 ID" min-width="100" />
+      <el-table-column prop="telegram_id" label="TGID" min-width="120">
+        <template #default="{ row }">{{ row.telegram_id || '-' }}</template>
+      </el-table-column>
+      <el-table-column label="游戏余额" min-width="140">
+        <template #default="{ row }">{{ formatCurrency(row.balance) }}</template>
+      </el-table-column>
+      <el-table-column label="创建时间" min-width="170">
+        <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
+      </el-table-column>
+      <el-table-column label="最后登录时间" min-width="170">
+        <template #default="{ row }">{{ formatTime(row.last_login_at) }}</template>
+      </el-table-column>
+      <el-table-column prop="last_login_ip" label="登录 IP" min-width="140">
+        <template #default="{ row }">{{ row.last_login_ip || '-' }}</template>
+      </el-table-column>
+      <el-table-column label="用户状态" min-width="120">
         <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'info'">
-            {{ row.status === 1 ? '启用' : '停用' }}
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+            {{ row.status === 1 ? '正常' : '停用' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="最后登录" min-width="180">
+      <el-table-column label="管理操作" min-width="140" fixed="right">
         <template #default="{ row }">
-          {{ formatTime(row.last_login_at) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" min-width="180">
-        <template #default="{ row }">
-          {{ formatTime(row.created_at) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" min-width="120" fixed="right">
-        <template #default="{ row }">
-          <el-button v-if="canManageUsers" type="primary" link @click="openEditDialog(row)"
-            >编辑</el-button
+          <el-button
+            v-if="canManageUsers"
+            :type="row.status === 1 ? 'danger' : 'primary'"
+            link
+            :loading="updatingId === row.id"
+            @click="toggleUserStatus(row)"
           >
+            {{ row.status === 1 ? '停用用户' : '启用用户' }}
+          </el-button>
           <span v-else class="text-muted">只读</span>
         </template>
       </el-table-column>
     </el-table>
 
     <div class="table-footer">
-      <div class="table-summary">共 {{ pagination.total }} 条记录</div>
+      <div class="table-summary">
+        当前展示 {{ rows.length }} 条数据，共 {{ pagination.total }} 条记录
+      </div>
       <el-pagination
         background
         layout="prev, pager, next"
@@ -76,33 +90,12 @@
       />
     </div>
   </el-card>
-
-  <el-dialog v-model="dialogVisible" title="编辑用户" width="420px">
-    <el-form label-position="top">
-      <el-form-item label="用户名">
-        <el-input :model-value="editingUser?.username || ''" disabled />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-select v-model="editForm.status" placeholder="请选择状态">
-          <el-option label="启用" :value="1" />
-          <el-option label="停用" :value="0" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <div class="dialog-actions">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="submitEdit">保存</el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ElLoadingDirective as vLoading } from 'element-plus/es/components/loading/index'
-import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus/es/components/message/index'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 import { http } from '@/lib/http'
 import { useAdminSessionStore } from '@/stores/session'
@@ -113,6 +106,8 @@ interface UserRow {
   uid: string
   balance: number
   status: number
+  telegram_id: number
+  last_login_ip: string
   last_login_at: string | null
   created_at: string
 }
@@ -125,10 +120,8 @@ interface Pagination {
 }
 
 const loading = ref(false)
+const updatingId = ref<number | null>(null)
 const rows = ref<UserRow[]>([])
-const dialogVisible = ref(false)
-const submitting = ref(false)
-const editingUser = ref<UserRow | null>(null)
 const session = useAdminSessionStore()
 const filters = reactive({
   keyword: '',
@@ -136,12 +129,9 @@ const filters = reactive({
 })
 const pagination = reactive<Pagination>({
   page: 1,
-  page_size: 20,
+  page_size: 10,
   total: 0,
   total_pages: 0
-})
-const editForm = reactive({
-  status: 1
 })
 const canManageUsers = computed(() => session.hasPermission('users.manage'))
 
@@ -156,21 +146,13 @@ async function loadUsers() {
       page: pagination.page,
       page_size: pagination.page_size
     }
-
-    if (filters.keyword) {
-      params.keyword = filters.keyword
-    }
-    if (filters.status !== undefined) {
-      params.status = filters.status
-    }
+    if (filters.keyword) params.keyword = filters.keyword
+    if (filters.status !== undefined) params.status = filters.status
 
     const { data } = await http.get<{ data: UserRow[]; pagination: Pagination }>('/admin/users', {
       params
     })
-    rows.value = data.data.map((row) => ({
-      ...row,
-      balance: Number(row.balance.toFixed(2))
-    }))
+    rows.value = data.data
     Object.assign(pagination, data.pagination)
   } finally {
     loading.value = false
@@ -186,7 +168,7 @@ function resetFilters() {
   filters.keyword = ''
   filters.status = undefined
   pagination.page = 1
-  pagination.page_size = 20
+  pagination.page_size = 10
   void loadUsers()
 }
 
@@ -200,11 +182,30 @@ function handlePageSizeChange() {
   void loadUsers()
 }
 
-function formatTime(value?: string | null) {
-  if (!value) {
-    return '-'
+async function toggleUserStatus(row: UserRow) {
+  updatingId.value = row.id
+  try {
+    const nextStatus = row.status === 1 ? 0 : 1
+    await http.put(`/admin/users/${row.id}`, { status: nextStatus })
+    ElMessage.success(
+      nextStatus === 1
+        ? '玩家已启用，登录与游戏权限已恢复'
+        : '玩家已停用，并将在下次校验时无法继续访问'
+    )
+    await loadUsers()
+  } catch (error: any) {
+    ElMessage.error(error?.response?.data?.error || error?.message || '更新失败')
+  } finally {
+    updatingId.value = null
   }
+}
 
+function formatCurrency(value: number) {
+  return `¥ ${new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0)}`
+}
+
+function formatTime(value?: string | null) {
+  if (!value) return '-'
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -213,32 +214,6 @@ function formatTime(value?: string | null) {
     minute: '2-digit'
   }).format(new Date(value))
 }
-
-function openEditDialog(row: UserRow) {
-  editingUser.value = row
-  editForm.status = row.status
-  dialogVisible.value = true
-}
-
-async function submitEdit() {
-  if (!editingUser.value) {
-    return
-  }
-
-  submitting.value = true
-  try {
-    await http.put(`/admin/users/${editingUser.value.id}`, {
-      status: editForm.status
-    })
-    ElMessage.success('用户信息已更新')
-    dialogVisible.value = false
-    await loadUsers()
-  } catch (error: any) {
-    ElMessage.error(error?.response?.data?.error || error?.message || '更新失败')
-  } finally {
-    submitting.value = false
-  }
-}
 </script>
 
 <style scoped>
@@ -246,14 +221,29 @@ async function submitEdit() {
   border-radius: 28px;
 }
 
-.card-header {
+.card-header,
+.header-actions {
   display: flex;
   align-items: center;
+}
+
+.card-header {
   justify-content: space-between;
+  gap: 16px;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-subtitle {
+  margin-top: 6px;
+  color: #64748b;
 }
 
 .header-actions {
-  display: flex;
   gap: 10px;
 }
 
@@ -277,12 +267,6 @@ async function submitEdit() {
   color: #64748b;
 }
 
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
 @media (width <= 1080px) {
   .filter-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -294,6 +278,7 @@ async function submitEdit() {
     grid-template-columns: 1fr;
   }
 
+  .card-header,
   .table-footer {
     flex-direction: column;
     align-items: flex-start;
