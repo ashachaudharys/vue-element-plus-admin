@@ -203,6 +203,26 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:present',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'security-items',
+      name: 'SecurityCenterItems',
+      component: 'views/SecurityCenterItemsView',
+      meta: {
+        title: '安全中心菜单',
+        icon: 'ep:lock',
+        permission: ['operations.view']
+      }
+    },
+    {
+      path: 'withdraw-protocols',
+      name: 'WithdrawProtocols',
+      component: 'views/WithdrawProtocolsView',
+      meta: {
+        title: '提现协议配置',
+        icon: 'ep:money',
+        permission: ['operations.view']
+      }
     }
   ]
 }
