@@ -193,6 +193,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:reading',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'lottery-records',
+      name: 'LotteryRecords',
+      component: 'views/LotteryRecordsView',
+      meta: {
+        title: '抽奖明细',
+        icon: 'ep:present',
+        permission: ['operations.view']
+      }
     }
   ]
 }
