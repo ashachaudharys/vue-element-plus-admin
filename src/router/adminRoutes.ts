@@ -173,6 +173,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:brush-filled',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'tasks',
+      name: 'Tasks',
+      component: 'views/TasksView',
+      meta: {
+        title: '任务配置',
+        icon: 'ep:list',
+        permission: ['operations.view']
+      }
     }
   ]
 }
