@@ -233,6 +233,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:link',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'red-envelopes',
+      name: 'RedEnvelopes',
+      component: 'views/RedEnvelopesView',
+      meta: {
+        title: '红包管理',
+        icon: 'ep:present',
+        permission: ['operations.view']
+      }
     }
   ]
 }
