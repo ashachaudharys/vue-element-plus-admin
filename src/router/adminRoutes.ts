@@ -243,6 +243,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:present',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'pwd-envelopes',
+      name: 'PwdEnvelopes',
+      component: 'views/PwdEnvelopesView',
+      meta: {
+        title: '口令红包',
+        icon: 'ep:key',
+        permission: ['operations.view']
+      }
     }
   ]
 }
