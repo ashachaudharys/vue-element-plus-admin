@@ -223,6 +223,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:money',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'vpn-recommendations',
+      name: 'VpnRecommendations',
+      component: 'views/VpnRecommendationsView',
+      meta: {
+        title: '推荐VPN配置',
+        icon: 'ep:link',
+        permission: ['operations.view']
+      }
     }
   ]
 }
