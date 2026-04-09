@@ -183,6 +183,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
         icon: 'ep:list',
         permission: ['operations.view']
       }
+    },
+    {
+      path: 'crypto-tutorials',
+      name: 'CryptoTutorials',
+      component: 'views/CryptoTutorialsView',
+      meta: {
+        title: '购买教程',
+        icon: 'ep:reading',
+        permission: ['operations.view']
+      }
     }
   ]
 }
