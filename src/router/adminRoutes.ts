@@ -155,6 +155,16 @@ const operationsCenterRoute: AppCustomRouteRecordRaw = {
       }
     },
     {
+      path: 'promotions',
+      name: 'Promotions',
+      component: 'views/PromotionsView',
+      meta: {
+        title: '活动管理',
+        icon: 'ep:present',
+        permission: ['operations.view']
+      }
+    },
+    {
       path: 'frontend-content',
       name: 'FrontendContent',
       component: 'views/FrontendContentView',
