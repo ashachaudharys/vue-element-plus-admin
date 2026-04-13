@@ -25,9 +25,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="expire_days" label="有效期" width="100">
-          <template #default="{ row }">
-            {{ row.expire_days }}天
-          </template>
+          <template #default="{ row }"> {{ row.expire_days }}天 </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" />
         <el-table-column prop="description" label="说明" />
@@ -56,7 +54,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import request from '@/utils/request'
+import request from '@/axios'
 
 const loading = ref(false)
 const tableData = ref([])

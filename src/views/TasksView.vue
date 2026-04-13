@@ -14,11 +14,7 @@
         <el-table-column prop="subtitle" label="副标题" width="200" />
         <el-table-column label="图标" width="100">
           <template #default="scope">
-            <el-image 
-              style="width: 40px; height: 40px"
-              :src="scope.row.icon_url" 
-              fit="contain"
-            />
+            <el-image style="width: 40px; height: 40px" :src="scope.row.icon_url" fit="contain" />
           </template>
         </el-table-column>
         <el-table-column prop="type" label="任务类型" width="120">
@@ -52,7 +48,11 @@
     </el-card>
 
     <!-- 任务编辑对话框 -->
-    <el-dialog :title="dialogType === 'add' ? '添加任务' : '编辑任务'" v-model="dialogVisible" width="800px">
+    <el-dialog
+      :title="dialogType === 'add' ? '添加任务' : '编辑任务'"
+      v-model="dialogVisible"
+      width="800px"
+    >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -66,7 +66,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="图标URL" prop="icon_url">
@@ -104,19 +104,29 @@
         </el-row>
 
         <el-divider>奖励阶梯规则</el-divider>
-        
+
         <div v-for="(rule, index) in form.rules" :key="index" class="rule-item">
           <el-row :gutter="10" align="middle">
             <el-col :span="4">
               <div class="rule-label">阶梯 {{ index + 1 }}</div>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="条件值" label-width="60px" :prop="'rules.' + index + '.condition_value'" :rules="{ required: true, message: '请输入条件值', trigger: 'blur' }">
+              <el-form-item
+                label="条件值"
+                label-width="60px"
+                :prop="'rules.' + index + '.condition_value'"
+                :rules="{ required: true, message: '请输入条件值', trigger: 'blur' }"
+              >
                 <el-input-number v-model="rule.condition_value" :min="0" style="width: 100%" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="奖励金额" label-width="80px" :prop="'rules.' + index + '.reward_amount'" :rules="{ required: true, message: '请输入奖励金额', trigger: 'blur' }">
+              <el-form-item
+                label="奖励金额"
+                label-width="80px"
+                :prop="'rules.' + index + '.reward_amount'"
+                :rules="{ required: true, message: '请输入奖励金额', trigger: 'blur' }"
+              >
                 <el-input-number v-model="rule.reward_amount" :min="0" style="width: 100%" />
               </el-form-item>
             </el-col>
@@ -125,8 +135,8 @@
             </el-col>
           </el-row>
         </div>
-        
-        <div style="text-align: center; margin-top: 10px;">
+
+        <div style="text-align: center; margin-top: 10px">
           <el-button type="dashed" icon="Plus" @click="addRule">添加奖励阶梯</el-button>
         </div>
       </el-form>
@@ -162,9 +172,7 @@ const form = reactive({
   has_progress: false,
   sort: 0,
   status: 1,
-  rules: [
-    { level: 1, condition_value: 0, reward_amount: 0 }
-  ]
+  rules: [{ level: 1, condition_value: 0, reward_amount: 0 }]
 })
 
 const rules = {
@@ -196,9 +204,7 @@ const handleAdd = () => {
     has_progress: false,
     sort: 0,
     status: 1,
-    rules: [
-      { level: 1, condition_value: 0, reward_amount: 0 }
-    ]
+    rules: [{ level: 1, condition_value: 0, reward_amount: 0 }]
   })
   dialogVisible.value = true
   if (formRef.value) {

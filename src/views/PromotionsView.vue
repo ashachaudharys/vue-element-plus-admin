@@ -75,7 +75,10 @@
           <el-input v-model="form.banner_url" placeholder="如：/imageConfig/activity/xxx.webp" />
         </el-form-item>
         <el-form-item label="详情图URL" prop="detail_banner_url">
-          <el-input v-model="form.detail_banner_url" placeholder="如：/imageConfig/activity/xxx_detail.webp" />
+          <el-input
+            v-model="form.detail_banner_url"
+            placeholder="如：/imageConfig/activity/xxx_detail.webp"
+          />
         </el-form-item>
         <el-form-item label="详情标题" prop="detail_title">
           <el-input v-model="form.detail_title" placeholder="选填" />
@@ -105,7 +108,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { http } from '@/utils/http'
+import request from '@/axios'
 
 interface Promotion {
   id: number
@@ -156,8 +159,8 @@ const rules: FormRules = {
 const fetchPromotions = async () => {
   loading.value = true
   try {
-    const { data } = await http.get('/admin/promotions')
-    promotions.value = data.data || []
+    const res = await request.get({ url: '/admin/promotions' })
+    promotions.value = res.data || []
   } catch (error) {
     console.error('Failed to fetch promotions:', error)
   } finally {
@@ -197,10 +200,10 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (editingId.value) {
-        await http.put(`/admin/promotions/${editingId.value}`, form.value)
+        await request.put({ url: `/admin/promotions/${editingId.value}`, data: form.value })
         ElMessage.success('更新成功')
       } else {
-        await http.post('/admin/promotions', form.value)
+        await request.post({ url: '/admin/promotions', data: form.value })
         ElMessage.success('创建成功')
       }
       dialogVisible.value = false
@@ -218,7 +221,7 @@ const handleDelete = async (row: Promotion) => {
     await ElMessageBox.confirm(`确定要删除活动 "${row.title}" 吗？`, '警告', {
       type: 'warning'
     })
-    await http.delete(`/admin/promotions/${row.id}`)
+    await request.delete({ url: `/admin/promotions/${row.id}` })
     ElMessage.success('删除成功')
     fetchPromotions()
   } catch (error) {

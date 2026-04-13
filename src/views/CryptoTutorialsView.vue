@@ -14,11 +14,7 @@
         <el-table-column prop="domain" label="域名" width="200" />
         <el-table-column label="图标" width="100">
           <template #default="scope">
-            <el-image 
-              style="width: 40px; height: 40px"
-              :src="scope.row.icon_url" 
-              fit="contain"
-            />
+            <el-image style="width: 40px; height: 40px" :src="scope.row.icon_url" fit="contain" />
           </template>
         </el-table-column>
         <el-table-column prop="tutorial_url" label="教程链接" show-overflow-tooltip />
@@ -43,20 +39,24 @@
     </el-card>
 
     <!-- 教程编辑对话框 -->
-    <el-dialog :title="dialogType === 'add' ? '添加教程' : '编辑教程'" v-model="dialogVisible" width="600px">
+    <el-dialog
+      :title="dialogType === 'add' ? '添加教程' : '编辑教程'"
+      v-model="dialogVisible"
+      width="600px"
+    >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="平台名称" prop="name">
           <el-input v-model="form.name" placeholder="例如：火币网" />
         </el-form-item>
-        
+
         <el-form-item label="域名" prop="domain">
           <el-input v-model="form.domain" placeholder="例如：huobi.com" />
         </el-form-item>
-        
+
         <el-form-item label="图标URL" prop="icon_url">
           <el-input v-model="form.icon_url" placeholder="图片链接地址" />
         </el-form-item>
-        
+
         <el-form-item label="教程链接" prop="tutorial_url">
           <el-input v-model="form.tutorial_url" placeholder="教程跳转链接" />
         </el-form-item>

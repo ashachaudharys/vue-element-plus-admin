@@ -12,11 +12,9 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column label="图标" width="100">
           <template #default="{ row }">
-            <el-image :src="row.icon_url" style="width: 40px; height: 40px; border-radius: 8px;">
+            <el-image :src="row.icon_url" style="width: 40px; height: 40px; border-radius: 8px">
               <template #error>
-                <div class="image-slot">
-                  <el-icon><icon-picture /></el-icon>
-                </div>
+                <div class="image-slot"> </div>
               </template>
             </el-image>
           </template>
@@ -83,8 +81,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Picture as IconPicture } from '@element-plus/icons-vue'
-import request from '@/utils/request'
+import request from '@/axios'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -166,7 +163,10 @@ const submitForm = async () => {
           await request.post({ url: '/admin/vpn-recommendations', data: form.value })
           ElMessage.success('添加成功')
         } else {
-          await request.put({ url: `/admin/vpn-recommendations/${form.value.id}`, data: form.value })
+          await request.put({
+            url: `/admin/vpn-recommendations/${form.value.id}`,
+            data: form.value
+          })
           ElMessage.success('修改成功')
         }
         dialogVisible.value = false

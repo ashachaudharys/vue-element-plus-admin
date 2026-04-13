@@ -20,7 +20,7 @@
         </el-table-column>
         <el-table-column prop="amount" label="抽奖金额" width="150">
           <template #default="scope">
-            <span style="color: #67c23a; font-weight: bold;">{{ scope.row.amount.toFixed(2) }}</span>
+            <span style="color: #67c23a; font-weight: bold">{{ scope.row.amount.toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="抽奖时间" width="200">
@@ -42,16 +42,22 @@
         <el-form-item label="用户ID" prop="user_id">
           <el-input-number v-model="form.user_id" :min="1" style="width: 100%" />
         </el-form-item>
-        
+
         <el-form-item label="抽奖类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择类型" style="width: 100%">
             <el-option label="大转盘 (wheel)" value="wheel" />
             <el-option label="抽奖券 (ticket)" value="ticket" />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item label="抽奖金额" prop="amount">
-          <el-input-number v-model="form.amount" :min="0" :precision="2" :step="1" style="width: 100%" />
+          <el-input-number
+            v-model="form.amount"
+            :min="0"
+            :precision="2"
+            :step="1"
+            style="width: 100%"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -78,7 +84,7 @@ const formRef = ref()
 const form = reactive({
   user_id: 1,
   type: 'wheel',
-  amount: 10.00
+  amount: 10.0
 })
 
 const rules = {
@@ -88,10 +94,10 @@ const rules = {
 }
 
 const formatDate = (dateStr: string) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
-};
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`
+}
 
 const fetchRecords = async () => {
   loading.value = true
@@ -109,7 +115,7 @@ const handleAdd = () => {
   Object.assign(form, {
     user_id: 1,
     type: 'wheel',
-    amount: 10.00
+    amount: 10.0
   })
   dialogVisible.value = true
   if (formRef.value) {
